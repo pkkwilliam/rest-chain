@@ -9,6 +9,7 @@ const { CHAIN_REQUEST_NOT_EXISTED } = require("../commons/Error");
 const { chainOfRequest } = require("../commons/request");
 const mongoose = require("mongoose");
 const { findByIdAndUpdate } = require("../models/ChainRequest");
+const { paginationRequest } = require("./routeUtil");
 
 const ChainRequestRouter = express.Router();
 
@@ -18,6 +19,15 @@ async function getById(chainRequestId) {
   }
   return await ChainRequestStorage.findById(chainRequestId);
 }
+
+ChainRequestRouter.get("/all", async (req, res) => {
+  const response = await paginationRequest(
+    req,
+    res,
+    ChainRequestStorage.find()
+  );
+  res.status(200).json(response);
+});
 
 ChainRequestRouter.route("/:id")
   .get(async (req, res) => {

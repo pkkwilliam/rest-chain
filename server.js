@@ -1,6 +1,7 @@
 const dotenv = require("dotenv");
 const express = require("express");
 const mongoose = require("mongoose");
+const { validateApiKey } = require("./services/accountService");
 const RequestRouter = require("./routes/request");
 const ChainRequestRouter = require("./routes/chainRequestRoute");
 const { init } = require("./services/initService");
@@ -20,7 +21,14 @@ mongo.once("open", () => console.log("Connected to MongoDB"));
 
 // Route
 app.use(logger);
-app.use("/request", RequestRouter);
+app.use(
+  "/request",
+  (req, res, next) => {
+    validateApiKey(req);
+    next();
+  },
+  RequestRouter
+);
 app.use("/chainRequest", ChainRequestRouter);
 
 function logger(req, res, next) {

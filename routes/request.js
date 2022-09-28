@@ -1,7 +1,13 @@
 const express = require("express");
 const RequestStorage = require("../models/Request");
+const { paginationRequest } = require("./routeUtil");
 
 const RequestRouter = express.Router();
+
+RequestRouter.get("/all", async (req, res) => {
+  const response = await paginationRequest(req, res, RequestStorage.find());
+  res.status(200).json(response);
+});
 
 RequestRouter.route("/:id")
   .get(async (req, res) => {
