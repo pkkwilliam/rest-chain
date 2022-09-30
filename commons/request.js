@@ -33,7 +33,6 @@ async function chainOfRequest(requests) {
   let responses = [];
   for (const request of requests) {
     let {
-      _id,
       url,
       dynamicBody = [],
       dynamicHeaders = [],
@@ -46,7 +45,7 @@ async function chainOfRequest(requests) {
       body = method === "GET" ? undefined : {},
     } = request;
 
-    console.info("Request Name:", name, "Request ID:", _id);
+    console.info("Request Name:", name);
     // headers = setHeadersValue(responses, headers);
     headers = setVariableObject(responses, headers, dynamicHeaders);
     body = setVariableObject(responses, body, dynamicBody);
@@ -68,6 +67,7 @@ async function chainOfRequest(requests) {
     console.log("Status Code:", response.statusCode);
     responses.push(response);
   }
+  return responses;
 }
 
 module.exports = {

@@ -9,47 +9,64 @@ const { CHAIN_REQUEST_NOT_EXISTED } = require("../commons/Error");
 const { chainOfRequest } = require("../commons/request");
 const mongoose = require("mongoose");
 const { findByIdAndUpdate } = require("../models/ChainRequest");
-const { paginationRequest } = require("./routeUtil");
+const { getUserApiKey, paginationRequest } = require("./routeUtil");
 
 const ChainRequestRouter = express.Router();
 
-async function getById(chainRequestId) {
+async function getById(chainRequestId, req, res) {
+  const apiKey = getUserApiKey(req);
   if (!mongoose.isValidObjectId(chainRequestId)) {
     return null;
   }
-  return await ChainRequestStorage.findById(chainRequestId);
+  const response = await ChainRequestStorage.findOne(
+    {
+      _id: chainRequestId,
+      apiKey,
+    },
+    ["_id", "name", "startTime", "endTime", "cronSchedule", "requests"]
+  );
+
+  return response;
 }
 
 ChainRequestRouter.get("/all", async (req, res) => {
+  const apiKey = getUserApiKey(req);
   const response = await paginationRequest(
     req,
     res,
-    ChainRequestStorage.find()
+    ChainRequestStorage.find({ apiKey })
   );
   res.status(200).json(response);
 });
 
 ChainRequestRouter.route("/:id")
   .get(async (req, res) => {
+    const apiKey = getUserApiKey(req);
     const { id } = req.params;
-    const response = await getById(id);
+    const response = await getById(id, req, res);
     response
       ? res.status(200).json(response)
       : res.status(400).json(CHAIN_REQUEST_NOT_EXISTED);
   })
   .put(async (req, res) => {
-    const { id } = req.params;
-    let request = await ChainRequestStorage.findByIdAndUpdate(id, {
-      _id: id,
-      ...req.body,
-    });
+    const apiKey = getUserApiKey(req);
+    const { body, params } = req;
+    const { id } = params;
+    let request = await ChainRequestStorage.findOneAndUpdate(
+      { _id: id, apiKey },
+      body,
+      {
+        new: true,
+      }
+    );
 
     return res.status(200).json(request);
     // TODO if not existed
   })
   .delete(async (req, res) => {
+    const apiKey = getUserApiKey(req);
     const { id } = req.params;
-    await ChainRequestStorage.findByIdAndRemove(id);
+    await ChainRequestStorage.findOneAndRemove({ _id: id, apiKey });
     removeChainRequest(id);
     res.status(204).send();
   });
@@ -57,22 +74,23 @@ ChainRequestRouter.route("/:id")
 ChainRequestRouter.post("/:id/execute", async (req, res) => {
   const { id } = req.params;
   const response = await ChainRequestStorage.findById(id);
-  const requests = await Promise.all(
-    response.requests.map(
-      async (requestId) => await RequestStorage.findById(requestId)
-    )
-  );
-  await chainOfRequest(requests);
-  res.status(200).json(requests);
+  // const requests = await Promise.all(
+  //   response.requests.map(
+  //     async (requestId) => await RequestStorage.findById(requestId)
+  //   )
+  // );
+  const responses = await chainOfRequest(response.requests);
+  res.status(200).json(responses);
 });
 
 ChainRequestRouter.post("/", async (req, res) => {
   const newChainRequest = new ChainRequestStorage({
     ...req.body,
   });
-  const response = await newChainRequest.save();
+  let response = await newChainRequest.save();
   addChainRequest(response);
-  res.status(200).json(response);
+  let finalResponse = await getById(response._id, req, res);
+  res.status(200).json(finalResponse);
 });
 
 module.exports = ChainRequestRouter;

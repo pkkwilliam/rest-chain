@@ -6,4 +6,8 @@ async function paginationRequest(req, res, queryRequest) {
   return response;
 }
 
-module.exports = { paginationRequest };
+function getUserApiKey(req) {
+  return req.body.apiKey;
+}
+
+module.exports = { getUserApiKey, paginationRequest };

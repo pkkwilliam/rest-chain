@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const chainRequestSchema = new mongoose.Schema({
-  account: {
+  apiKey: {
     type: String,
     required: true,
   },
@@ -10,7 +10,7 @@ const chainRequestSchema = new mongoose.Schema({
     required: true,
   },
   requests: {
-    type: Array,
+    type: Object,
     required: true,
   },
   startTime: {
