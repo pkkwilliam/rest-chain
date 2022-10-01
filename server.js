@@ -23,18 +23,12 @@ mongo.once("open", () => console.log("Connected to MongoDB"));
 // Route
 app.use(logger);
 app.use(
-  "/request",
-  async (req, res, next) => {
-    await validateRequest(req, res);
-    next();
-  },
-  RequestRouter
-);
-app.use(
   "/chainRequest",
   async (req, res, next) => {
-    await validateRequest(req, res);
-    next();
+    const validRequest = await validateRequest(req, res);
+    if (validRequest) {
+      next();
+    }
   },
   ChainRequestRouter
 );

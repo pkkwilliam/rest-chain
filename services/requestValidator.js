@@ -8,9 +8,10 @@ async function validateRequest(req, res) {
   console.log(headers);
   const { host, from } = headers;
   if (from === "RAPID_API") {
-    validateRapidApiRequest(req, res);
+    return validateRapidApiRequest(req, res);
   } else {
     res.status(401).json({ message: "invalid channel" });
+    return false;
   }
 }
 
@@ -20,9 +21,11 @@ function validateRapidApiRequest(req, res) {
   const secret = headers["x-rapidapi-proxy-secret"];
   if (secret !== RAPIDAPI_PROXY_SECRET || !userApiKey) {
     res.status(401).json({ message: "bad authentication" });
+    return false;
   }
   console.info("authenticated rapid api user:", userApiKey);
   assignApiKeyIntoBody(req, userApiKey);
+  return true;
 }
 
 function assignApiKeyIntoBody(req, apiKey) {

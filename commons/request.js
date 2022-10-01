@@ -10,10 +10,13 @@ async function httpRequest(url, body, headers, method, options) {
     method,
     ...options,
   });
-  const parsedJson = await response.json();
+  // const parsedJson = await response.json();
   return {
     headers: response.headers,
-    body: parsedJson,
+    body: response
+      .json()
+      .then((resulut) => result)
+      .catch((exception) => {}),
     statusCode: response.status,
   };
 }

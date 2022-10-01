@@ -4,12 +4,17 @@ const RequestStorage = require("../models/Request");
 const {
   addChainRequest,
   removeChainRequest,
+  updateChainRequest,
 } = require("../services/jobScheduleService");
 const { CHAIN_REQUEST_NOT_EXISTED } = require("../commons/Error");
 const { chainOfRequest } = require("../commons/request");
 const mongoose = require("mongoose");
 const { findByIdAndUpdate } = require("../models/ChainRequest");
-const { getUserApiKey, paginationRequest } = require("./routeUtil");
+const {
+  getUserApiKey,
+  paginationRequest,
+  validateChainRequestObject,
+} = require("./routeUtil");
 
 const ChainRequestRouter = express.Router();
 
@@ -49,6 +54,10 @@ ChainRequestRouter.route("/:id")
       : res.status(400).json(CHAIN_REQUEST_NOT_EXISTED);
   })
   .put(async (req, res) => {
+    const validObject = validateChainRequestObject(req, res);
+    if (!validObject) {
+      return;
+    }
     const apiKey = getUserApiKey(req);
     const { body, params } = req;
     const { id } = params;
@@ -59,7 +68,7 @@ ChainRequestRouter.route("/:id")
         new: true,
       }
     );
-
+    updateChainRequest(request);
     return res.status(200).json(request);
     // TODO if not existed
   })
@@ -84,6 +93,10 @@ ChainRequestRouter.post("/:id/execute", async (req, res) => {
 });
 
 ChainRequestRouter.post("/", async (req, res) => {
+  const validObject = validateChainRequestObject(req, res);
+  if (!validObject) {
+    return;
+  }
   const newChainRequest = new ChainRequestStorage({
     ...req.body,
   });

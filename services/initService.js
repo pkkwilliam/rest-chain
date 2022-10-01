@@ -12,7 +12,7 @@ async function init() {
 async function getChainRequests() {
   const currentDate = new Date();
   const chainRequests = await ChainRequestStorage.find({
-    endTime: { $gte: currentDate },
+    $and: [{ endTime: { $lte: currentDate } }],
   });
   return chainRequests;
 }
