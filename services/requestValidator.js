@@ -7,7 +7,7 @@ async function validateRequest(req, res) {
   const { headers } = req;
   console.log(headers);
   const { host, from } = headers;
-  if (from === "RAPID_API") {
+  if (headers["x-rapidapi-host"]) {
     return validateRapidApiRequest(req, res);
   } else {
     res.status(401).json({ message: "invalid channel" });

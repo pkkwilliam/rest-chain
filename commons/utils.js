@@ -1,7 +1,13 @@
 const {
   generatePreviousRequestVariable,
 } = require("./previousRequestVariable");
-const { generateDateVariable } = require("./dateVariable");
+const {
+  generateDateVariable,
+} = require("../services/variable/date/dateVariable");
+const {
+  VARIABLE_TYPE_DATE,
+  VARIABLE_TYPE_PREVIOUS_REQUEST,
+} = require("./models/VariableType");
 
 function splitDynamicString(inputString) {
   return inputString.split(/[{}]/);
@@ -49,9 +55,9 @@ function setValueIntoObject(object, position, value) {
 
 function generateVariable(previousRequestResponses, variable) {
   const { variableType } = variable;
-  if (variableType === "PREVIOUS_REQUEST") {
+  if (variableType === VARIABLE_TYPE_PREVIOUS_REQUEST) {
     return generatePreviousRequestVariable(previousRequestResponses, variable);
-  } else if (variableType === "DATE") {
+  } else if (variableType === VARIABLE_TYPE_DATE) {
     return generateDateVariable(variable);
   }
 }

@@ -7,16 +7,20 @@ const {
   LAST_DATE_OF_CURRENT_MONTH,
   LAST_DATE_OF_LAST_MONTH,
   LAST_DATE_OF_NEXT_MONTH,
-} = require("./DateType");
+} = require("../../../commons/models/date/DateType");
 const moment = require("moment");
+const {
+  TIME_UNIT_MODIFY_TYPE_ADD,
+  TIME_UNIT_MODIFY_TYPE_SUBSTRACT,
+} = require("../../../commons/models/date/TimeUnitModifyType");
 
 function generateDateVariable(variable) {
   let { date, format, locale = "en", dateType, day, minute, second } = variable;
   let result = getDateByDateType(dateType, date);
   const modifyValue = (date, setMethod, getMethod, modifyType, value) => {
-    if (modifyType === "ADD") {
+    if (modifyType === TIME_UNIT_MODIFY_TYPE_ADD) {
       setMethod(getMethod() + value);
-    } else if (modifyType === "SUBSTRACT") {
+    } else if (modifyType === TIME_UNIT_MODIFY_TYPE_SUBSTRACT) {
       setMethod(getMethod() - value);
     }
   };
@@ -75,4 +79,6 @@ function getDateByDateType(dateType, date) {
   }
 }
 
-module.exports = { generateDateVariable };
+module.exports = {
+  generateDateVariable,
+};
