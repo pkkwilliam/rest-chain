@@ -98,7 +98,6 @@ ChainRequestRouter.post("/:id/execute", async (req, res) => {
 ChainRequestRouter.post("/", async (req, res) => {
   const { valid, exception } = validateChainRequest(req.body);
   if (!valid) {
-    console.log(exception);
     generateExceptionResponse(res, exception);
     return;
   }

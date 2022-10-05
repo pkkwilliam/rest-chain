@@ -43,6 +43,25 @@ const GENERAL_ELEMENT_MISSING_OR_INCORRECT = {
   statusCode: 400,
   message: "is missing or incorrect.",
 };
+const FIRST_REQUEST_VARIABLE_TYPE_CANNOT_BE_PREVIOUS_REQUEST = {
+  statusCode: 400,
+  message:
+    "cannot use variableType PREVIOUS_REQUEST, only requests[i > 0] allow to use PREVIOUS_REQUEST",
+};
+const PREVIOUS_REQUEST_MISSING_REQUEST_INDEX = {
+  statusCode: 400,
+  message: "reqeustIndex is missing or incorrect, index must be >= 0",
+};
+
+const PREVIOUS_REQUEST_MISSING_RETRIEVE_FROM = {
+  statusCode: 400,
+  message: "retrieveFrom is missing or incorrect, must be BODY / HEADER",
+};
+const PREVIOUS_REQUEST_MISSING_RETRIEVE_POSITION = {
+  statusCode: 400,
+  message:
+    "retrievePosition is missing or incorrect, must be array of string or number indicate index.",
+};
 
 function generateExceptionResponse(
   res,
@@ -74,7 +93,15 @@ function concatValidatorMessageException(
   };
 }
 
-function concatValidtorMessageIndexException(responseObject, index) {
+function concatValidatorGeneralMessage(exception) {
+  return concatValidatorMessageException({ exception }, " ", false);
+}
+
+function concatValidorMissingValue(exception) {
+  return concatValidatorMessageException({ exception }, "", true);
+}
+
+function concatValidatorMessageIndexException(responseObject, index) {
   return concatValidatorMessageException(responseObject, `[${index}]`, false);
 }
 
@@ -90,7 +117,13 @@ module.exports = {
   END_TIME_IS_EARILER_THAN_CURRENT,
   DATE_MODIFY_VALUE_INCORRET,
   GENERAL_ELEMENT_MISSING_OR_INCORRECT,
+  FIRST_REQUEST_VARIABLE_TYPE_CANNOT_BE_PREVIOUS_REQUEST,
+  PREVIOUS_REQUEST_MISSING_REQUEST_INDEX,
+  PREVIOUS_REQUEST_MISSING_RETRIEVE_FROM,
+  PREVIOUS_REQUEST_MISSING_RETRIEVE_POSITION,
+  concatValidatorGeneralMessage,
   concatValidatorMessageException,
-  concatValidtorMessageIndexException,
+  concatValidatorMessageIndexException,
+  concatValidorMissingValue,
   generateExceptionResponse,
 };

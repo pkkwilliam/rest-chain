@@ -5,8 +5,11 @@ const {
   BAD_VAIRABLE_TYPE,
   END_TIME_IS_EARILER_THAN_CURRENT,
   GENERAL_ELEMENT_MISSING_OR_INCORRECT,
+  FIRST_REQUEST_VARIABLE_TYPE_CANNOT_BE_PREVIOUS_REQUEST,
+  concatValidatorGeneralMessage,
   concatValidatorMessageException,
-  concatValidtorMessageIndexException,
+  concatValidatorMessageIndexException,
+  concatValidorMissingValue,
 } = require("../../commons/exceptionMessages");
 const {
   VARIABLE_TYPE_DATE,
@@ -36,7 +39,7 @@ function validateChainRequest(requestBody) {
   return VALID_REQUEST_RESPONSE;
 }
 
-function validateRequest(request, index) {
+function validateRequest(request, requestIndex) {
   const { url, method, dynamicBody, dynamicHeaders, dynamicRequestParams } =
     request;
   // check basic info
@@ -47,13 +50,13 @@ function validateRequest(request, index) {
     );
   }
   if (isGetMethodContainsBody(request)) {
-    return concatValidatorMessageException(
-      { valid: false, exception: GET_METHOD_CONTAINS_BODY },
-      " "
-    );
+    return concatValidatorGeneralMessage(GET_METHOD_CONTAINS_BODY);
   }
   // TODO validate dynamic headers
-  const validDynamicHeaders = validateDynamicObjects(dynamicHeaders);
+  const validDynamicHeaders = validateDynamicObjects(
+    dynamicHeaders,
+    requestIndex
+  );
   if (!validDynamicHeaders.valid) {
     return concatValidatorMessageException(
       validDynamicHeaders,
@@ -61,13 +64,15 @@ function validateRequest(request, index) {
     );
   }
   // TODO validate dynamic body
-  const validDynamicBody = validateDynamicObjects(dynamicBody);
+  const validDynamicBody = validateDynamicObjects(dynamicBody, requestIndex);
   if (!validDynamicBody.valid) {
     return concatValidatorMessageException(validDynamicBody, "dynamicBody");
   }
   // TODO validate dynamic request params
-  const validDynamicRequestParams =
-    validateDynamicObjects(dynamicRequestParams);
+  const validDynamicRequestParams = validateDynamicObjects(
+    dynamicRequestParams,
+    requestIndex
+  );
   if (!validDynamicRequestParams.valid) {
     return concatValidatorMessageException(
       validDynamicRequestParams,
@@ -77,32 +82,37 @@ function validateRequest(request, index) {
   return VALID_REQUEST_RESPONSE;
 }
 
-function validateDynamicObjects(dynamicObjects) {
+function validateDynamicObjects(dynamicObjects, requestIndex) {
   if (!dynamicObjects || dynamicObjects.length === 0) {
     return VALID_REQUEST_RESPONSE;
   }
   for (let index = 0; index < dynamicObjects.length; index++) {
-    const validObject = validateDynamicObject(dynamicObjects[index], index);
+    const validObject = validateDynamicObject(
+      dynamicObjects[index],
+      requestIndex
+    );
     if (!validObject.valid) {
-      return concatValidtorMessageIndexException(validObject, index);
+      return concatValidatorMessageIndexException(validObject, index);
     }
   }
   return VALID_REQUEST_RESPONSE;
 }
 
-function validateDynamicObject(variable, index) {
+function validateDynamicObject(variable, requestIndex) {
   const { position } = variable;
   if (!position || position.length < 1) {
-    return concatValidatorMessageException(
-      { valid: false, exception: DYNAMIC_VARIABLE_MISSING_POSITION },
-      "",
-      true
-    );
+    return concatValidorMissingValue(DYNAMIC_VARIABLE_MISSING_POSITION);
   }
-  return validateVariable(variable, index);
+  return validateVariable(variable, requestIndex);
 }
 
-function validateVariable(variable, index) {
+function validateVariable(variable, requestIndex) {
+  const { variableType } = variable;
+  if (requestIndex === 0 && variableType === VARIABLE_TYPE_PREVIOUS_REQUEST) {
+    return concatValidatorGeneralMessage(
+      FIRST_REQUEST_VARIABLE_TYPE_CANNOT_BE_PREVIOUS_REQUEST
+    );
+  }
   switch (variable.variableType) {
     case VARIABLE_TYPE_DATE:
       return validateDateVariable(variable);
