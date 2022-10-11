@@ -85,14 +85,18 @@ ChainRequestRouter.route("/:id")
 
 ChainRequestRouter.post("/:id/execute", async (req, res) => {
   const { id } = req.params;
-  const response = await ChainRequestStorage.findById(id);
+  const response = await getById(id, req, res);
   // const requests = await Promise.all(
   //   response.requests.map(
   //     async (requestId) => await RequestStorage.findById(requestId)
   //   )
   // );
-  const responses = await chainOfRequest(response.requests);
-  res.status(200).json(responses);
+  if (!response) {
+    res.status(403).json({ message: "request not existed or not authorized" });
+  } else {
+    const responses = await chainOfRequest(response.requests);
+    res.status(200).json(responses);
+  }
 });
 
 ChainRequestRouter.post("/", async (req, res) => {

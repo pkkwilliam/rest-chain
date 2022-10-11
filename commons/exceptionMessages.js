@@ -62,6 +62,11 @@ const PREVIOUS_REQUEST_MISSING_RETRIEVE_POSITION = {
   message:
     "retrievePosition is missing or incorrect, must be array of string or number indicate index.",
 };
+const REQUEST_FROM_INDEX_GREATER_OR_EQUAL_TO_CURRENT_REQUEST = {
+  statusCode: 400,
+  message:
+    "requestFromIndex is greater or equal to current request index, must be index that is smaller that current request in the requests array.",
+};
 
 function generateExceptionResponse(
   res,
@@ -121,6 +126,7 @@ module.exports = {
   PREVIOUS_REQUEST_MISSING_REQUEST_INDEX,
   PREVIOUS_REQUEST_MISSING_RETRIEVE_FROM,
   PREVIOUS_REQUEST_MISSING_RETRIEVE_POSITION,
+  REQUEST_FROM_INDEX_GREATER_OR_EQUAL_TO_CURRENT_REQUEST,
   concatValidatorGeneralMessage,
   concatValidatorMessageException,
   concatValidatorMessageIndexException,

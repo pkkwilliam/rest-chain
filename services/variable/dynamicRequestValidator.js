@@ -117,7 +117,7 @@ function validateVariable(variable, requestIndex) {
     case VARIABLE_TYPE_DATE:
       return validateDateVariable(variable);
     case VARIABLE_TYPE_PREVIOUS_REQUEST:
-      return validatePreviousRequestVariable(variable);
+      return validatePreviousRequestVariable(variable, requestIndex);
     default:
       return concatValidatorMessageException(
         { exception: BAD_VAIRABLE_TYPE },
