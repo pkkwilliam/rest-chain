@@ -1,7 +1,7 @@
 const dotenv = require("dotenv");
 const express = require("express");
 const mongoose = require("mongoose");
-const { validateRequest } = require("./services/requestValidator");
+const { validateRequest } = require("./services/apiRequestValidator");
 const { validateApiKey } = require("./services/accountService");
 const RequestRouter = require("./routes/request");
 const ChainRequestRouter = require("./routes/chainRequestRoute");

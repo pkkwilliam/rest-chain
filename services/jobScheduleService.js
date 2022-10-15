@@ -1,5 +1,5 @@
 const schedule = require("node-schedule");
-const { chainOfRequest } = require("../commons/request");
+const { chainOfRequest } = require("./httpRequestService");
 
 let jobs = {};
 

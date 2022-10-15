@@ -8,7 +8,27 @@ const {
 } = require("./previousRequest/previousRequestGenerator");
 
 function constructRequest(previousRequestResponses, request) {
-  let { dynamicBody, dynamicHeaders, dynamicRequestParams } = request;
+  let {
+    body = {},
+    headers = {},
+    requestParams = {},
+    dynamicBody,
+    dynamicHeaders,
+    dynamicRequestParams,
+  } = request;
+  body = getDynamicObject(previousRequestResponses, body, dynamicBody);
+  headers = getDynamicObject(previousRequestResponses, headers, dynamicHeaders);
+  requestParams = getDynamicObject(
+    previousRequestResponses,
+    requestParams,
+    dynamicRequestParams
+  );
+  return {
+    ...request,
+    body,
+    headers,
+    requestParams,
+  };
 }
 
 function getDynamicObject(
@@ -16,12 +36,19 @@ function getDynamicObject(
   targetObject,
   dynamicValueConfigs
 ) {
-  dynamicValueConfigs((config) => {
+  if (!dynamicValueConfigs) {
+    return targetObject;
+  }
+  return dynamicValueConfigs.reduce((currentTargetObject, config) => {
     const { position } = config;
     const value = getDynamicValue(previousRequestResponses, config);
-    insertValueIntoPosition(targetObject, position, value);
-    return targetObject;
-  });
+    currentTargetObject = insertValueIntoPosition(
+      currentTargetObject,
+      position,
+      value
+    );
+    return currentTargetObject;
+  }, targetObject);
 }
 
 function insertValueIntoPosition(currentObject, position, value) {
@@ -52,4 +79,6 @@ function getDynamicValue(previousRequestResponses, dynaimcValueConfig) {
   }
 }
 
-module.exports = {};
+module.exports = {
+  constructRequest,
+};

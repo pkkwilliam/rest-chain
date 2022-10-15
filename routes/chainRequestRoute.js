@@ -10,7 +10,8 @@ const {
   generateExceptionResponse,
   CHAIN_REQUEST_NOT_EXISTED,
 } = require("../commons/exceptionMessages");
-const { chainOfRequest } = require("../commons/request");
+const { chainOfRequest } = require("../services/httpRequestService");
+const { executeRequest } = require("../services/executeRequestService");
 const mongoose = require("mongoose");
 const { findByIdAndUpdate } = require("../models/ChainRequest");
 const { getUserApiKey, paginationRequest } = require("./routeUtil");
@@ -94,7 +95,7 @@ ChainRequestRouter.post("/:id/execute", async (req, res) => {
   if (!response) {
     res.status(403).json({ message: "request not existed or not authorized" });
   } else {
-    const responses = await chainOfRequest(response.requests);
+    const responses = await executeRequest(response.requests);
     res.status(200).json(responses);
   }
 });

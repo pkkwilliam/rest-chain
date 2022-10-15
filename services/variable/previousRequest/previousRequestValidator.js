@@ -13,11 +13,11 @@ const {
 const VALID_REQUEST_RESPONSE = { valid: true };
 
 function validatePreviousRequestVariable(variableObject, requestIndex) {
-  const { requestFromIndex, retrieveFrom, retrievePosition } = variableObject;
-  if (requestFromIndex < 0 || !requestFromIndex) {
+  const { retrieveFromIndex, retrieveFrom, retrievePosition } = variableObject;
+  if (retrieveFromIndex < 0 || !retrieveFromIndex) {
     return concatValidorMissingValue(PREVIOUS_REQUEST_MISSING_REQUEST_INDEX);
   }
-  if (requestFromIndex >= requestIndex) {
+  if (retrieveFromIndex >= requestIndex) {
     return concatValidorMissingValue(
       REQUEST_FROM_INDEX_GREATER_OR_EQUAL_TO_CURRENT_REQUEST
     );

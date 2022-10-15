@@ -50,7 +50,7 @@ const FIRST_REQUEST_VARIABLE_TYPE_CANNOT_BE_PREVIOUS_REQUEST = {
 };
 const PREVIOUS_REQUEST_MISSING_REQUEST_INDEX = {
   statusCode: 400,
-  message: "reqeustIndex is missing or incorrect, index must be >= 0",
+  message: "retrieveFromIndex is missing or incorrect, index must be >= 0",
 };
 
 const PREVIOUS_REQUEST_MISSING_RETRIEVE_FROM = {
@@ -65,7 +65,7 @@ const PREVIOUS_REQUEST_MISSING_RETRIEVE_POSITION = {
 const REQUEST_FROM_INDEX_GREATER_OR_EQUAL_TO_CURRENT_REQUEST = {
   statusCode: 400,
   message:
-    "requestFromIndex is greater or equal to current request index, must be index that is smaller that current request in the requests array.",
+    "retrieveFromIndex is greater or equal to current request index, must be index that is smaller that current request in the requests array.",
 };
 
 function generateExceptionResponse(

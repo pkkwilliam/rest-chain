@@ -1,24 +1,45 @@
 const fetch = require("node-fetch");
-const { generateRequestParamsString, setVariableObject } = require("./utils");
+const {
+  generateRequestParamsString,
+  setVariableObject,
+} = require("../commons/utils");
 const RequestStorage = require("../models/Request");
 
-async function httpRequest(url, body, headers, method, options) {
+async function httpRequest(url, body, headers, method) {
   console.log("Request url:", url);
+  console.log("headers", headers);
+  console.log("body", body);
   const response = await fetch(url, {
-    body: JSON.stringify(body),
+    body: method === "GET" ? null : JSON.stringify(body),
     headers: { "Content-Type": "application/json", ...headers },
     method,
-    ...options,
   });
-  // const parsedJson = await response.json();
+  let responseHeaders = await getResponseHeaders(response);
+  let parsedJson = await getResponseBody(response);
+
   return {
-    headers: response.headers,
-    body: response
-      .json()
-      .then((resulut) => result)
-      .catch((exception) => {}),
+    headers: responseHeaders,
+    body: parsedJson,
     statusCode: response.status,
   };
+}
+
+async function getResponseBody(response) {
+  let bodyObject = {};
+  try {
+    bodyObject = await response.json();
+  } catch (ex) {
+    console.warn("response body failed to parse");
+  }
+  return bodyObject;
+}
+
+async function getResponseHeaders(response) {
+  let headersObject = {};
+  response.headers.forEach(function (value, name) {
+    headersObject[name] = value;
+  });
+  return headersObject;
 }
 
 async function chainOfRequstByRequestIds(requestIds) {
@@ -76,4 +97,5 @@ async function chainOfRequest(requests) {
 module.exports = {
   chainOfRequest,
   chainOfRequstByRequestIds,
+  httpRequest,
 };

@@ -1,22 +1,24 @@
 function generatePreviousRequestVariable(previousRequestResponses, variable) {
-  const { requestIndex, retreivePosition } = variable;
-  const response = previousRequestResponses[requestIndex];
+  const {
+    retrieveFromIndex,
+    retrievePosition,
+    prefix = "",
+    suffix = "",
+  } = variable;
+  const response = previousRequestResponses[retrieveFromIndex];
   if (!response) {
     // TODO response not existed, might be failed
   }
-  // const responseFrom = getRetrieveFrom(response, retrieveFrom);
-  // if (!responseFrom) {
-  //   // TODO BODY or HEADERS not existed in the response
-  // }
-  let result = responseFrom;
+  let result =
+    retrievePosition[0] === "headers" ? response.headers : response.body;
   for (
-    let positionIndex = 0;
-    positionIndex < retreivePosition.length;
+    let positionIndex = 1;
+    positionIndex < retrievePosition.length;
     positionIndex++
   ) {
-    result = result[retreivePosition[positionIndex]];
+    result = result[retrievePosition[positionIndex]];
   }
-  return result;
+  return prefix + result + suffix;
 }
 
 module.exports = {
