@@ -29,7 +29,7 @@ function createScheduledJob(chainRequest) {
       "endTime:",
       endTime
     );
-    if (startTime < currentDate) {
+    if (startTime > currentDate) {
       console.log("request should not be started yet");
     } else {
       await chainOfRequest(requests);
@@ -40,8 +40,8 @@ function createScheduledJob(chainRequest) {
   return job;
 }
 
-function checkEndTime(chainRequest, date) {
-  if (chainRequest?.endTime >= date) {
+function checkEndTime(chainRequest, currentDate) {
+  if (currentDate > chainRequest?.endTime) {
     console.log("end time reached", chainRequest.endTime);
     removeChainRequest(chainRequest._id);
   }
