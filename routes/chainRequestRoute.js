@@ -2,7 +2,7 @@ const express = require("express");
 const ChainRequestStorage = require("../models/ChainRequest");
 const RequestStorage = require("../models/Request");
 const {
-  addChainRequest,
+  addScheduledChainRequest,
   removeChainRequest,
   updateChainRequest,
 } = require("../services/jobScheduleService");
@@ -110,7 +110,7 @@ ChainRequestRouter.post("/", async (req, res) => {
     ...req.body,
   });
   let response = await newChainRequest.save();
-  addChainRequest(response);
+  addScheduledChainRequest(response);
   let finalResponse = await getById(response._id, req, res);
   res.status(200).json(finalResponse);
 });

@@ -1,18 +1,18 @@
 const ChainRequestStorage = require("../models/ChainRequest");
-const { addChainRequest } = require("../services/jobScheduleService");
+const { addScheduledChainRequest } = require("../services/jobScheduleService");
 
 async function init() {
   const chainRequests = await getChainRequests();
   console.log("chain request count:", chainRequests.length);
   chainRequests.forEach((chainRequest) => {
-    addChainRequest(chainRequest);
+    addScheduledChainRequest(chainRequest);
   });
 }
 
 async function getChainRequests() {
   const currentDate = new Date();
   const chainRequests = await ChainRequestStorage.find({
-    $and: [{ endTime: { $lte: currentDate } }],
+    endTime: { $gte: currentDate },
   });
   return chainRequests;
 }

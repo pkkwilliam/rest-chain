@@ -37,7 +37,7 @@ const BAD_VAIRABLE_TYPE = {
 };
 const END_TIME_IS_EARILER_THAN_CURRENT = {
   statusCode: 400,
-  message: "end time should not be eariler than current",
+  message: "endTime should not be eariler than current",
 };
 const GENERAL_ELEMENT_MISSING_OR_INCORRECT = {
   statusCode: 400,

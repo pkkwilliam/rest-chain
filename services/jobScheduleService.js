@@ -1,13 +1,24 @@
 const schedule = require("node-schedule");
 const { chainOfRequest } = require("./httpRequestService");
+const {
+  addRequestToCache,
+  getRequestFromCache,
+  removeRequestFromCache,
+} = require("./scheduledRequestCache/inMemmoryScheduledRequestCache");
 
-let jobs = {};
+function addScheduledChainRequest(chainRequest) {
+  const { _id } = chainRequest;
+  const job = createScheduledJob(chainRequest);
+  addRequestToCache(_id, job);
+}
 
-function addChainRequest(chainRequest) {
+function createScheduledJob(chainRequest) {
   const { _id, cronSchedule, endTime, name, requests, startTime } =
     chainRequest;
   const job = schedule.scheduleJob(cronSchedule, async () => {
+    const currentDate = new Date();
     console.log("===== CRON SCHEDULE START =====");
+    console.log("current date", currentDate);
     console.log(
       "Chain Request Name:",
       name,
@@ -18,15 +29,18 @@ function addChainRequest(chainRequest) {
       "endTime:",
       endTime
     );
-    await chainOfRequest(requests);
-    checkEndTime(chainRequest);
+    if (startTime < currentDate) {
+      console.log("request should not be started yet");
+    } else {
+      await chainOfRequest(requests);
+      checkEndTime(chainRequest, currentDate);
+    }
     console.log("===== END =====");
   });
-  jobs[_id] = job;
+  return job;
 }
 
-function checkEndTime(chainRequest) {
-  const date = new Date();
+function checkEndTime(chainRequest, date) {
   if (chainRequest?.endTime >= date) {
     console.log("end time reached", chainRequest.endTime);
     removeChainRequest(chainRequest._id);
@@ -36,16 +50,20 @@ function checkEndTime(chainRequest) {
 function updateChainRequest(chainRequest) {
   const { _id } = chainRequest;
   removeChainRequest(_id);
-  addChainRequest(chainRequest);
+  addScheduledChainRequest(chainRequest);
 }
 
 function removeChainRequest(chainRequestId) {
   try {
-    jobs[chainRequestId].cancel();
-    delete jobs[chainRequestId];
+    getRequestFromCache(chainRequestId).cancel();
+    removeRequestFromCache(chainRequestId);
   } catch (exception) {
     console.warn("Chain Request ID might not existed", chainRequestId);
   }
 }
 
-module.exports = { addChainRequest, removeChainRequest, updateChainRequest };
+module.exports = {
+  addScheduledChainRequest,
+  removeChainRequest,
+  updateChainRequest,
+};
