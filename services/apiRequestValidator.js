@@ -5,6 +5,7 @@ const { RAPIDAPI_PROXY_SECRET } = process.env;
 
 async function validateRequest(req, res) {
   const { headers } = req;
+  console.log(headers);
   const { host, from } = headers;
   if (headers["x-rapidapi-host"]) {
     return validateRapidApiRequest(req, res);
