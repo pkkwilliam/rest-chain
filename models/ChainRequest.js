@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const chainRequestSchema = new mongoose.Schema({
-  apiKey: {
+  userId: {
     type: String,
     required: true,
   },

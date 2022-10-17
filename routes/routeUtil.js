@@ -6,11 +6,21 @@ async function paginationRequest(req, res, queryRequest) {
   return response;
 }
 
+function getUserAccount(req) {
+  return req.body.account;
+}
+
+function getUserId(req) {
+  return getUserAccount(req)._id;
+}
+
 function getUserApiKey(req) {
-  return req.body.apiKey;
+  return getUserId(req);
 }
 
 module.exports = {
   getUserApiKey,
+  getUserAccount,
+  getUserId,
   paginationRequest,
 };

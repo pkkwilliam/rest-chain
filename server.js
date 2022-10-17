@@ -2,7 +2,6 @@ const dotenv = require("dotenv");
 const express = require("express");
 const mongoose = require("mongoose");
 const { validateRequest } = require("./services/apiRequestValidator");
-const { validateApiKey } = require("./services/accountService");
 const RequestRouter = require("./routes/request");
 const ChainRequestRouter = require("./routes/chainRequestRoute");
 const { init } = require("./services/initService");
@@ -25,9 +24,13 @@ app.use(logger);
 app.use(
   "/chainRequest",
   async (req, res, next) => {
-    const validRequest = await validateRequest(req, res);
-    if (validRequest) {
+    try {
+      const account = await validateRequest(req, res, next);
+      req.body = { ...req.body, account };
       next();
+    } catch (applicationException) {
+      console.log(applicationException);
+      res.status(applicationException.statusCode).json(applicationException);
     }
   },
   ChainRequestRouter

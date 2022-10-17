@@ -1,35 +1,48 @@
+const { getAccountAndCreateIfEmpty } = require("./account/accountService");
+const {
+  RAPIDAPI_PROXY_SERCRET_HEADER_NAME,
+  RAPIDAPI_HOST_HEADER_NAME,
+} = require("../utils/headerUtil");
+const { CHANNEL_RAPIDAPI } = require("../commons/models/account/channel");
 const dotenv = require("dotenv");
+const {
+  INVALID_CHANNEL,
+  UNAUTHORIZE,
+} = require("../commons/exceptionMessages");
 dotenv.config();
 
 const { RAPIDAPI_PROXY_SECRET } = process.env;
 
 async function validateRequest(req, res) {
-  const { headers } = req;
-  console.log(headers);
-  const { host, from } = headers;
-  if (headers["x-rapidapi-host"]) {
-    return validateRapidApiRequest(req, res);
-  } else {
-    res.status(401).json({ message: "invalid channel" });
-    return false;
+  console.log(req.headers);
+  const channel = await getRequestChannel(req, res);
+  validateChannelAuthorization(req, channel);
+  const userAccount = await getAccountAndCreateIfEmpty(req, channel);
+  console.log("user sucessfully validated", userAccount.username);
+  return userAccount;
+}
+
+async function validateChannelAuthorization(req, channel) {
+  switch (channel) {
+    case CHANNEL_RAPIDAPI:
+      validateRapidApiRequest(req);
   }
 }
 
-function validateRapidApiRequest(req, res) {
+function validateRapidApiRequest(req) {
   const { headers } = req;
-  const userApiKey = headers["x-rapidapi-key"];
-  const secret = headers["x-rapidapi-proxy-secret"];
-  if (secret !== RAPIDAPI_PROXY_SECRET || !userApiKey) {
-    res.status(401).json({ message: "bad authentication" });
-    return false;
+  const secret = headers[RAPIDAPI_PROXY_SERCRET_HEADER_NAME];
+  if (secret !== RAPIDAPI_PROXY_SECRET) {
+    throw UNAUTHORIZE;
   }
-  console.info("authenticated rapid api user:", userApiKey);
-  assignApiKeyIntoBody(req, userApiKey);
-  return true;
 }
 
-function assignApiKeyIntoBody(req, apiKey) {
-  req.body = { ...req.body, apiKey: apiKey };
+async function getRequestChannel(req, res) {
+  const { headers } = req;
+  if (headers[RAPIDAPI_HOST_HEADER_NAME]) {
+    return CHANNEL_RAPIDAPI;
+  }
+  throw INVALID_CHANNEL;
 }
 
 module.exports = { validateRequest };

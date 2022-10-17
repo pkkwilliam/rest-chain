@@ -14,7 +14,12 @@ const { chainOfRequest } = require("../services/httpRequestService");
 const { executeRequest } = require("../services/executeRequestService");
 const mongoose = require("mongoose");
 const { findByIdAndUpdate } = require("../models/ChainRequest");
-const { getUserApiKey, paginationRequest } = require("./routeUtil");
+const {
+  getUserApiKey,
+  getUserAccount,
+  getUserId,
+  paginationRequest,
+} = require("./routeUtil");
 const {
   validateChainRequest,
 } = require("../services/variable/dynamicRequestValidator");
@@ -22,97 +27,121 @@ const {
 const ChainRequestRouter = express.Router();
 
 async function getById(chainRequestId, req, res) {
-  const apiKey = getUserApiKey(req);
+  const userId = getUserId(req);
   if (!mongoose.isValidObjectId(chainRequestId)) {
-    return null;
+    throw CHAIN_REQUEST_NOT_EXISTED;
   }
   const response = await ChainRequestStorage.findOne(
     {
       _id: chainRequestId,
-      apiKey,
+      userId,
     },
-    ["_id", "name", "startTime", "endTime", "cronSchedule", "requests"]
+    getResponseContentShouldContain()
   );
-
+  if (!response) {
+    throw CHAIN_REQUEST_NOT_EXISTED;
+  }
   return response;
 }
 
 ChainRequestRouter.get("/all", async (req, res) => {
-  const apiKey = getUserApiKey(req);
+  const userId = getUserId(req);
   const response = await paginationRequest(
     req,
     res,
-    ChainRequestStorage.find({ apiKey })
+    ChainRequestStorage.find({ userId }, getResponseContentShouldContain())
   );
   res.status(200).json(response);
 });
 
 ChainRequestRouter.route("/:id")
   .get(async (req, res) => {
-    const apiKey = getUserApiKey(req);
-    const { id } = req.params;
-    const response = await getById(id, req, res);
-    response
-      ? res.status(200).json(response)
-      : generateExceptionResponse(res, CHAIN_REQUEST_NOT_EXISTED);
+    try {
+      const { id } = req.params;
+      const response = await getById(id, req, res);
+      res.status(200).json(response);
+    } catch (applicationException) {
+      processException(applicationException, res);
+    }
   })
   .put(async (req, res) => {
-    const { valid, exception } = validateChainRequest(req.body);
-    if (!valid) {
-      generateExceptionResponse(res, exception);
-      return;
-    }
-    const apiKey = getUserApiKey(req);
-    const { body, params } = req;
-    const { id } = params;
-    let request = await ChainRequestStorage.findOneAndUpdate(
-      { _id: id, apiKey },
-      body,
-      {
-        new: true,
+    try {
+      const { valid, exception } = validateChainRequest(req.body);
+      if (!valid) {
+        throw exception;
       }
-    );
-    updateChainRequest(request);
-    return res.status(200).json(request);
-    // TODO if not existed
+      const userId = getUserId(req);
+      const { body, params } = req;
+      const { id } = params;
+      let request = await ChainRequestStorage.findOneAndUpdate(
+        { _id: id, userId },
+        body,
+        {
+          new: true,
+        }
+      );
+      updateChainRequest(request);
+      return res.status(200).json(request);
+      // TODO if not existed
+    } catch (applicationException) {
+      processException(applicationException, res);
+    }
   })
   .delete(async (req, res) => {
-    const apiKey = getUserApiKey(req);
-    const { id } = req.params;
-    await ChainRequestStorage.findOneAndRemove({ _id: id, apiKey });
-    removeChainRequest(id);
-    res.status(204).send();
+    try {
+      const userId = getUserId(req);
+      const { id } = req.params;
+      await ChainRequestStorage.findOneAndRemove({ _id: id, userId });
+      removeChainRequest(id);
+      res.status(204).send();
+    } catch (applicationException) {
+      processException(applicationException, res);
+    }
   });
 
 ChainRequestRouter.post("/:id/execute", async (req, res) => {
   const { id } = req.params;
-  const response = await getById(id, req, res);
-  // const requests = await Promise.all(
-  //   response.requests.map(
-  //     async (requestId) => await RequestStorage.findById(requestId)
-  //   )
-  // );
-  if (!response) {
-    res.status(403).json({ message: "request not existed or not authorized" });
-  } else {
+  try {
+    const response = await getById(id, req, res);
     const responses = await executeRequest(response.requests);
     res.status(200).json(responses);
+  } catch (applicationException) {
+    processException(applicationException, res);
   }
 });
 
 ChainRequestRouter.post("/", async (req, res) => {
-  const { valid, exception } = validateChainRequest(req.body);
-  if (!valid) {
-    generateExceptionResponse(res, exception);
-    return;
+  try {
+    const { valid, exception } = validateChainRequest(req.body);
+    if (!valid) {
+      throw exception;
+    }
+    const userId = getUserId(req);
+    const newChainRequest = new ChainRequestStorage({
+      ...req.body,
+      userId,
+    });
+    let response = await newChainRequest.save();
+    addScheduledChainRequest(response);
+    let finalResponse = await getById(response._id, req, res);
+    res.status(200).json(finalResponse);
+  } catch (applicationException) {
+    processException(applicationException, res);
   }
-  const newChainRequest = new ChainRequestStorage({
-    ...req.body,
-  });
-  let response = await newChainRequest.save();
-  addScheduledChainRequest(response);
-  let finalResponse = await getById(response._id, req, res);
-  res.status(200).json(finalResponse);
 });
+
+function getResponseContentShouldContain() {
+  return ["_id", "name", "startTime", "endTime", "cronSchedule", "requests"];
+}
+
+function processException(applicationException, res) {
+  // invalid application exception, generic exception
+  if (!applicationException.error) {
+    res.status(500).send();
+  } else {
+    console.log(applicationException);
+    res.status(applicationException.statusCode).json(applicationException);
+  }
+}
 
 module.exports = ChainRequestRouter;

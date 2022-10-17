@@ -1,20 +1,20 @@
 const mongoose = require("mongoose");
 
 const accountSchema = new mongoose.Schema({
-  apiKey: {
-    type: String,
-    required: true,
-  },
   balance: {
     type: Number,
     required: true,
   },
-  email: {
+  channel: {
     type: String,
     required: true,
   },
   requested: {
     type: Number,
+    required: true,
+  },
+  username: {
+    type: String,
     required: true,
   },
 });
