@@ -37,7 +37,7 @@ async function getById(chainRequestId, req, res) {
       userId,
     },
     getResponseContentShouldContain()
-  );
+  ).lean();
   if (!response) {
     throw CHAIN_REQUEST_NOT_EXISTED;
   }
@@ -49,9 +49,12 @@ ChainRequestRouter.get("/all", async (req, res) => {
   const response = await paginationRequest(
     req,
     res,
-    ChainRequestStorage.find({ userId }, getResponseContentShouldContain())
+    ChainRequestStorage.find(
+      { userId },
+      getResponseContentShouldContain()
+    ).lean()
   );
-  res.status(200).json(response);
+  res.status(200).json(transformResponses(response));
 });
 
 ChainRequestRouter.route("/:id")
@@ -59,7 +62,7 @@ ChainRequestRouter.route("/:id")
     try {
       const { id } = req.params;
       const response = await getById(id, req, res);
-      res.status(200).json(response);
+      res.status(200).json(transformResponse(response));
     } catch (applicationException) {
       processException(applicationException, res);
     }
@@ -79,9 +82,9 @@ ChainRequestRouter.route("/:id")
         {
           new: true,
         }
-      );
+      ).lean();
       updateChainRequest(request);
-      return res.status(200).json(request);
+      return res.status(200).json(transformResponse(request));
       // TODO if not existed
     } catch (applicationException) {
       processException(applicationException, res);
@@ -124,7 +127,7 @@ ChainRequestRouter.post("/", async (req, res) => {
     let response = await newChainRequest.save();
     addScheduledChainRequest(response);
     let finalResponse = await getById(response._id, req, res);
-    res.status(200).json(finalResponse);
+    res.status(200).json(transformResponse(finalResponse));
   } catch (applicationException) {
     processException(applicationException, res);
   }
@@ -132,6 +135,20 @@ ChainRequestRouter.post("/", async (req, res) => {
 
 function getResponseContentShouldContain() {
   return ["_id", "name", "startTime", "endTime", "cronSchedule", "requests"];
+}
+
+function transformResponses(responses) {
+  return responses.map((response) => transformResponse(response));
+}
+
+function transformResponse(response) {
+  response = {
+    ...response,
+    id: response._id,
+  };
+  delete response._id;
+  delete response.__v;
+  return response;
 }
 
 function processException(applicationException, res) {
